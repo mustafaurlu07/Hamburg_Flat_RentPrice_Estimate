@@ -1,0 +1,123 @@
+schema: '2.0'
+stages:
+  data_download:
+    cmd: python src/veri_indirme.py
+    deps:
+    - path: src/veri_indirme.py
+      hash: md5
+      md5: 5b8bd8b9eb5e7ce1a672138ac3486a5e
+      size: 761
+    outs:
+    - path: data/raw/titanic_original.csv
+      hash: md5
+      md5: 56f29cc0b807cb970a914ed075227f94
+      size: 57018
+  data_clean:
+    cmd: python src/veri_temizleme.py
+    deps:
+    - path: data/raw/titanic_original.csv
+      hash: md5
+      md5: 56f29cc0b807cb970a914ed075227f94
+      size: 57018
+    - path: src/veri_temizleme.py
+      hash: md5
+      md5: 8f46078fdcf1b9d2241e2dd51551d658
+      size: 1579
+    outs:
+    - path: data/processed/titanic_clean.csv
+      hash: md5
+      md5: 6cd2bffd73e2221f6ffcc5302ec58a4e
+      size: 35497
+  feature_engineering:
+    cmd: python src/feature_engineering.py
+    deps:
+    - path: data/processed/titanic_clean.csv
+      hash: md5
+      md5: 6cd2bffd73e2221f6ffcc5302ec58a4e
+      size: 35497
+    - path: src/feature_engineering.py
+      hash: md5
+      md5: 53aeca14abf69a6dcd6fde82c482031a
+      size: 2386
+    outs:
+    - path: data/processed/titanic_features.csv
+      hash: md5
+      md5: dd212ce1a00e1ec184166940acf482ec
+      size: 39388
+  model_development:
+    cmd: python src/model_gelistirme.py
+    deps:
+    - path: data/processed/titanic_features.csv
+      hash: md5
+      md5: dd212ce1a00e1ec184166940acf482ec
+      size: 39388
+    - path: src/model_gelistirme.py
+      hash: md5
+      md5: 290d988cc061b56adbcc0ce02ea817e4
+      size: 6226
+    outs:
+    - path: models/best_model.pkl
+      hash: md5
+      md5: cf5f99adf190fe9456cbb0bbbafce73b
+      size: 959
+    - path: models/gradient_boosting.pkl
+      hash: md5
+      md5: c2ea016c4ff064d1b0b37ae97c2a75f9
+      size: 177948
+    - path: models/logistic_regression.pkl
+      hash: md5
+      md5: cf5f99adf190fe9456cbb0bbbafce73b
+      size: 959
+    - path: models/naive_bayes.pkl
+      hash: md5
+      md5: d0b08dbd0e1d5336c972df21e722f6d5
+      size: 1575
+    - path: models/random_forest.pkl
+      hash: md5
+      md5: abd857ebf364a3694286a7bdbc73712a
+      size: 2405369
+    - path: models/scaler.pkl
+      hash: md5
+      md5: b013ba743a75330c1533fdc3f29598d0
+      size: 1295
+    - path: models/svm.pkl
+      hash: md5
+      md5: 7c15b21ffc54475f451e386bc4898632
+      size: 38379
+    - path: results/best_model_info.json
+      hash: md5
+      md5: ebb567d3997ec162a00dae9de23212ed
+      size: 293
+    - path: results/feature_names.json
+      hash: md5
+      md5: 664f0dbd6356eff8bb272eca34e3f4b2
+      size: 140
+    - path: results/model_results.json
+      hash: md5
+      md5: 0d11eb3cdc736b7220f8f8cfee206106
+      size: 4804
+  best_model_optimization:
+    cmd: python src/best_model_optimize.py
+    deps:
+    - path: data/processed/titanic_features.csv
+      hash: md5
+      md5: dd212ce1a00e1ec184166940acf482ec
+      size: 39388
+    - path: results/model_results.json
+      hash: md5
+      md5: 0d11eb3cdc736b7220f8f8cfee206106
+      size: 4804
+    - path: src/best_model_optimize.py
+      hash: md5
+      md5: a6e71c3e532649b4e5c35cb3514ed855
+      size: 11407
+    outs:
+    - path: models/detailed_optimized/
+      hash: md5
+      md5: 98d29e613ded55cd870cbbde7441edaa.dir
+      size: 2041
+      nfiles: 1
+    - path: results/detailed_optimization_report.json
+      hash: md5
+      md5: 11202ecdad2332fda03b3b236e8dba12
+      size: 981

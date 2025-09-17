@@ -1,0 +1,50 @@
+stages:
+  data_download:
+    cmd: python src/veri_indirme.py
+    deps:
+      - src/veri_indirme.py
+    outs:
+      - data/raw/titanic_original.csv
+
+  data_clean:
+    cmd: python src/veri_temizleme.py
+    deps:
+      - src/veri_temizleme.py
+      - data/raw/titanic_original.csv
+    outs:
+      - data/processed/titanic_clean.csv
+
+  feature_engineering:
+    cmd: python src/feature_engineering.py
+    deps:
+      - src/feature_engineering.py
+      - data/processed/titanic_clean.csv
+    outs:
+      - data/processed/titanic_features.csv
+
+  model_development:
+    cmd: python src/model_gelistirme.py
+    deps:
+      - src/model_gelistirme.py
+      - data/processed/titanic_features.csv
+    outs:
+      - models/random_forest.pkl
+      - models/logistic_regression.pkl
+      - models/svm.pkl
+      - models/gradient_boosting.pkl
+      - models/naive_bayes.pkl
+      - models/scaler.pkl
+      - models/best_model.pkl
+      - results/model_results.json
+      - results/best_model_info.json
+      - results/feature_names.json
+
+  best_model_optimization:
+    cmd: python src/best_model_optimize.py
+    deps:
+      - src/best_model_optimize.py
+      - data/processed/titanic_features.csv
+      - results/model_results.json
+    outs:
+      - models/detailed_optimized/
+      - results/detailed_optimization_report.json
