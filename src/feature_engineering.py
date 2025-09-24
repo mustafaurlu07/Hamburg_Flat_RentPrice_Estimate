@@ -2,66 +2,61 @@ import pandas as pd
 import numpy as np
 import os
 
+
 def create_features():
     """Özellik mühendisliği yap"""
-    
+
     # Temizlenmiş veriyi yükle
-    df = pd.read_csv("data/processed/titanic_clean.csv")
-    
+    df = pd.read_csv(
+        r"C:\Users\musta\MLOPS\ML_RentEstimate\ModelGelistirmeveOptimizasyon\data\processed\hamburgrentflat_clean.csv"
+    )
+
     print(f"Özellik mühendisliği öncesi boyut: {df.shape}")
-    
+
     # Yeni özellikler oluştur
-    
-    # 1. Aile büyüklüğü
-    df['family_size'] = df['sibsp'] + df['parch'] + 1
-    
-    # 2. Yalnız seyahat edip etmediği
-    df['is_alone'] = (df['family_size'] == 1).astype(int)
-    
-    # 3. Yaş grupları
-    df['age_group'] = pd.cut(df['age'], 
-                            bins=[0, 12, 18, 35, 60, 100], 
-                            labels=['Child', 'Teen', 'Adult', 'Middle_age', 'Senior'])
-    
-    # 4. Fare grupları
-    df['fare_group'] = pd.cut(df['fare'], 
-                             bins=[0, 7.91, 14.45, 31, 1000], 
-                             labels=['Low', 'Medium', 'High', 'Very_High'])
-    
-    # 5. Unvan çıkarma (eğer name sütunu varsa)
-    if 'name' in df.columns:
-        df['title'] = df['name'].str.extract(' ([A-Za-z]+)\.', expand=False)
-        
-        # Nadir unvanları 'Other' olarak grupla
-        title_counts = df['title'].value_counts()
-        rare_titles = title_counts[title_counts < 10].index
-        df.loc[df['title'].isin(rare_titles), 'title'] = 'Other'
-    
+
+    # 1. Metrekare Fiyatı
+    df['price_per_sqm'] = df['cold_price'] / df['flat_area']
+
+    # 2. Yaş Kategorisi
+    bins = [0, 10, 30, 60, 1000]
+    labels = ['new', 'recent', 'middle_age', 'old']
+    df['age_category'] = pd.cut(df['object_age'], bins=bins, labels=labels)
+
+    # 3. Mesafe grupları
+    df['distance_category'] = pd.cut(
+        df['distance_to_centre'],
+        bins=[0, 1, 3, 7, 100],
+        labels=['very_close', 'close', 'medium', 'far']
+    )
+
+    """
+    # 4. Şehir ve Bölge Adı
+    df['city_district'] = df['city'] + '_' + df['district']
+    """
+
     # Kategorik değişkenleri sayısala çevir
-    categorical_columns = ['sex', 'embarked', 'age_group', 'fare_group']
-    if 'title' in df.columns:
-        categorical_columns.append('title')
-    
+    categorical_columns = ['age_category', 'distance_category']
+
     for col in categorical_columns:
         if col in df.columns:
             df[col] = pd.Categorical(df[col]).codes
-    
-    # Class sütununu pclass olarak yeniden adlandır (eğer varsa)
-    if 'class' in df.columns and 'pclass' not in df.columns:
-        df = df.rename(columns={'class': 'pclass'})
-    
+
     print(f"Özellik mühendisliği sonrası boyut: {df.shape}")
-    print(f"Yeni özellikler: family_size, is_alone, age_group, fare_group")
-    if 'title' in df.columns:
-        print("Title özelliği de eklendi.")
-    
+    print("Yeni özellikler: price_per_sqm, age_category, distance_category")
+
     # Özellik mühendisliği yapılmış veriyi kaydet
-    df.to_csv("data/processed/titanic_features.csv", index=False)
-    
+    os.makedirs("data/processed", exist_ok=True)
+    df.to_csv(r"C:\Users\musta\MLOPS\ML_RentEstimate\ModelGelistirmeveOptimizasyon\data\processed\hamburgrentflat_features.csv", index=False)
+
     print("Özellik mühendisliği tamamlandı!")
-    print("Veri data/processed/titanic_features.csv dosyasına kaydedildi.")
-    
+    print("Veri data/processed/hamburgrentflat_features.csv dosyasına kaydedildi.")
+
+    # İlk 20 satırı göster
+    print(df.head(20))
+
     return df
+
 
 if __name__ == "__main__":
     create_features()

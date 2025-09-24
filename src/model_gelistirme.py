@@ -1,182 +1,139 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
-from sklearn.naive_bayes import GaussianNB
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_auc_score
-from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.linear_model import LinearRegression
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 import joblib
 import json
 import os
 
+
 def load_data():
     """Özellik mühendisliği yapılmış veriyi yükle"""
-    df = pd.read_csv("data/processed/titanic_features.csv")
+    df = pd.read_csv(
+        r"C:\Users\musta\MLOPS\ML_RentEstimate\ModelGelistirmeveOptimizasyon\data\processed\hamburgrentflat_features.csv"
+    )
     return df
+
 
 def prepare_features(df):
     """Modelleme için özellikleri hazırla"""
-    # Hedef değişken
-    y = df['survived']
-    
-    # Özellikler (sayısal olanları seç)
-    feature_columns = ['pclass', 'age', 'sibsp', 'parch', 'fare', 'family_size', 'is_alone']
-    
-    # Kategorik özellikler de dahil edilebilir
-    if 'sex' in df.columns:
-        feature_columns.append('sex')
-    if 'embarked' in df.columns:
-        feature_columns.append('embarked')
-    if 'age_group' in df.columns:
-        feature_columns.append('age_group')
-    if 'fare_group' in df.columns:
-        feature_columns.append('fare_group')
-    if 'title' in df.columns:
-        feature_columns.append('title')
-    
-    # Mevcut sütunları filtrele
-    available_features = [col for col in feature_columns if col in df.columns]
-    X = df[available_features].fillna(df[available_features].mean())
-    
-    print(f"Kullanılan özellikler: {available_features}")
-    
-    return X, y, available_features
+    y = df['cold_price']
 
-def train_models(X_train, y_train):
-    """Farklı modelleri eğit"""
+    feature_columns = [
+        'city', 'district', 'object_age', 'flat_area', 'room_count',
+        'distance_to_centre', 'price_per_sqm', 'age_category', 'distance_category'
+    ]
+
+    available_features = [col for col in feature_columns if col in df.columns]
+    X = df[available_features]  # Tekrar fillna yapmaya gerek yok
+
+    categorical_cols = X.select_dtypes(include='object').columns.tolist()
+    numerical_cols = X.select_dtypes(include=['int64', 'float64']).columns.tolist()
+
+    preprocessor = ColumnTransformer([
+    ('cat', OneHotEncoder(drop='first', handle_unknown='ignore'), categorical_cols),
+    ('num', StandardScaler(), numerical_cols)
+])
+
+    print(f"Kullanılan özellikler: {available_features}")
+    return X, y, available_features, preprocessor
+
+
+def train_and_evaluate_models(X_train, X_test, y_train, y_test, preprocessor):
+    """Farklı regresyon modellerini eğit ve değerlendir"""
     models = {
-        'random_forest': RandomForestClassifier(n_estimators=100, random_state=42),
-        'logistic_regression': LogisticRegression(random_state=42, max_iter=1000),
-        'svm': SVC(random_state=42, probability=True),
-        'gradient_boosting': GradientBoostingClassifier(random_state=42),
-        'naive_bayes': GaussianNB()
+        "Linear Regression": LinearRegression(),
+        "KNN Regressor": KNeighborsRegressor(n_neighbors=5),
+        "Decision Tree": DecisionTreeRegressor(random_state=42),
+        "Random Forest": RandomForestRegressor(n_estimators=100, random_state=42),
+        "Gradient Boosting": GradientBoostingRegressor(
+            n_estimators=100, learning_rate=0.1, max_depth=2, subsample=0.8, random_state=42
+        )
     }
-    
+
+    results = []
     trained_models = {}
-    
-    # Özellik ölçeklendirme
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    
+
     for name, model in models.items():
         print(f"{name} modeli eğitiliyor...")
-        
-        # SVM ve Logistic Regression için ölçeklendirilmiş veri kullan
-        if name in ['svm', 'logistic_regression']:
-            model.fit(X_train_scaled, y_train)
-        else:
-            model.fit(X_train, y_train)
-        
-        trained_models[name] = model
-    
-    # Scaler'ı da kaydet
-    trained_models['scaler'] = scaler
-    
-    return trained_models
 
-def evaluate_models(models, X_test, y_test):
-    """Modelleri değerlendir"""
-    results = {}
-    scaler = models.pop('scaler')  # Scaler'ı modeller sözlüğünden çıkar
-    
-    X_test_scaled = scaler.transform(X_test)
-    
-    for name, model in models.items():
-        print(f"{name} modeli değerlendiriliyor...")
-        
-        # Uygun veri setini seç
-        if name in ['svm', 'logistic_regression']:
-            y_pred = model.predict(X_test_scaled)
-            y_pred_proba = model.predict_proba(X_test_scaled)[:, 1]
-        else:
-            y_pred = model.predict(X_test)
-            y_pred_proba = model.predict_proba(X_test)[:, 1]
-        
-        accuracy = accuracy_score(y_test, y_pred)
-        roc_auc = roc_auc_score(y_test, y_pred_proba)
-        
-        results[name] = {
-            'accuracy': float(accuracy),
-            'roc_auc': float(roc_auc),
-            'classification_report': classification_report(y_test, y_pred, output_dict=True),
-            'confusion_matrix': confusion_matrix(y_test, y_pred).tolist()
-        }
-        
-        print(f"{name} - Doğruluk: {accuracy:.4f}, ROC-AUC: {roc_auc:.4f}")
-    
-    # Scaler'ı geri ekle
-    models['scaler'] = scaler
-    
-    return results
+        pipeline = Pipeline([
+            ('preprocess', preprocessor),
+            ('model', model)
+        ])
+        pipeline.fit(X_train, y_train)
 
-def save_models_and_results(models, results, feature_names):
+        y_train_pred = pipeline.predict(X_train)
+        y_test_pred = pipeline.predict(X_test)
+
+        r2_train = r2_score(y_train, y_train_pred)
+        r2_test = r2_score(y_test, y_test_pred)
+        mse = mean_squared_error(y_test, y_test_pred)
+        rmse = np.sqrt(mse)
+        mae = mean_absolute_error(y_test, y_test_pred)
+
+        results.append({
+            "Model": name,
+            "Eğitim R²": round(r2_train, 3),
+            "Test R²": round(r2_test, 3),
+            "Fark": round(r2_train - r2_test, 3),
+            "MSE": round(mse, 4),
+            "RMSE": round(rmse, 4),
+            "MAE": round(mae, 4)
+        })
+
+        trained_models[name] = pipeline
+
+    results_df = pd.DataFrame(results)
+    return trained_models, results_df
+
+
+def save_models_and_results(trained_models, results_df, feature_names):
     """Modelleri ve sonuçları kaydet"""
     os.makedirs("models", exist_ok=True)
     os.makedirs("results", exist_ok=True)
-    
-    # Modelleri kaydet
-    for name, model in models.items():
+
+    for name, model in trained_models.items():
         joblib.dump(model, f"models/{name}.pkl")
-    
-    # Sonuçları kaydet
-    with open("results/model_results.json", "w") as f:
-        json.dump(results, f, indent=2)
-    
-    # Özellik isimlerini kaydet
+
+    results_df.to_csv("results/model_results.csv", index=False)
+
     with open("results/feature_names.json", "w") as f:
         json.dump(feature_names, f, indent=2)
-    
-    # En iyi modeli belirle (ROC-AUC'ye göre)
-    best_model_name = max(results.keys(), key=lambda x: results[x]['roc_auc'])
-    best_model = models[best_model_name]
+
+    # En iyi modeli Test R²'ye göre seç
+    best_model_name = results_df.sort_values(by="Test R²", ascending=False).iloc[0]["Model"]
+    best_model = trained_models[best_model_name]
     joblib.dump(best_model, "models/best_model.pkl")
-    
-    # En iyi model bilgisini kaydet
-    best_model_info = {
-        'best_model': best_model_name,
-        'accuracy': results[best_model_name]['accuracy'],
-        'roc_auc': results[best_model_name]['roc_auc'],
-        'features_used': feature_names
-    }
-    
-    with open("results/best_model_info.json", "w") as f:
-        json.dump(best_model_info, f, indent=2)
-    
+
     print(f"\nEn iyi model: {best_model_name}")
-    print(f"Doğruluk: {results[best_model_name]['accuracy']:.4f}")
-    print(f"ROC-AUC: {results[best_model_name]['roc_auc']:.4f}")
+    print(results_df)
+
 
 def main():
     print("Model geliştirme başlatılıyor...")
-    
-    # Veriyi yükle
     df = load_data()
-    
-    # Özellikleri hazırla
-    X, y, feature_names = prepare_features(df)
-    
-    # Eğitim ve test setlerine böl
+
+    X, y, feature_names, preprocessor = prepare_features(df)
+
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
+        X, y, test_size=0.2, random_state=42
     )
-    
-    print(f"Eğitim seti boyutu: {X_train.shape}")
-    print(f"Test seti boyutu: {X_test.shape}")
-    print(f"Hedef değişken dağılımı - Eğitim: {y_train.value_counts().to_dict()}")
-    print(f"Hedef değişken dağılımı - Test: {y_test.value_counts().to_dict()}")
-    
-    # Modelleri eğit
-    trained_models = train_models(X_train, y_train)
-    
-    # Modelleri değerlendir
-    results = evaluate_models(trained_models, X_test, y_test)
-    
-    # Sonuçları kaydet
-    save_models_and_results(trained_models, results, feature_names)
-    
+
+    trained_models, results_df = train_and_evaluate_models(
+        X_train, X_test, y_train, y_test, preprocessor
+    )
+    save_models_and_results(trained_models, results_df, feature_names)
+
     print("\nModel geliştirme tamamlandı!")
+
 
 if __name__ == "__main__":
     main()

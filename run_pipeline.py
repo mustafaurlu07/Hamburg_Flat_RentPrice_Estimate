@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Titanic ML Pipeline Runner
+Rent ML Pipeline Runner
 Tüm pipeline'ı çalıştıran ana script
 """
 
@@ -50,8 +50,7 @@ def check_dependencies():
     """Gerekli bağımlılıkların yüklü olup olmadığını kontrol et"""
     print("🔍 Bağımlılıklar kontrol ediliyor...")
     
-    required_packages = ['pandas', 'numpy', 'sklearn', 'matplotlib', 
-                        'seaborn', 'joblib']
+    required_packages = ['pandas', 'numpy', 'sklearn', 'joblib']
     
     missing_packages = []
     
@@ -72,10 +71,10 @@ def check_dependencies():
 def setup_directories():
     """Gerekli dizinleri oluştur"""
     directories = [
-        "data/raw",
+        "data/raw", 
         "data/processed", 
         "models",
-        "models/optimized",
+        "models/detailed_optimized",
         "results"
     ]
     
@@ -87,18 +86,15 @@ def setup_directories():
 def run_full_pipeline():
     """Tam pipeline'ı çalıştır"""
     
-    # Banner
     print("""
     ╔══════════════════════════════════════════════════════════════╗
-    ║                  TITANIC ML PIPELINE                        ║
+    ║                  RENT ML PIPELINE                            ║
     ║              Model Development & Optimization                ║
     ╚══════════════════════════════════════════════════════════════╝
     """)
     
-    # Başlangıç zamanı
     pipeline_start_time = time.time()
     
-    # Ön kontroller
     if not check_dependencies():
         sys.exit(1)
     
@@ -106,7 +102,6 @@ def run_full_pipeline():
     
     # Pipeline adımları
     steps = [
-        ("python src/veri_indirme.py", "Veri İndirme"),
         ("python src/veri_temizleme.py", "Veri Temizleme"),
         ("python src/feature_engineering.py", "Özellik Mühendisliği"),
         ("python src/model_gelistirme.py", "Model Geliştirme"),
@@ -125,7 +120,6 @@ def run_full_pipeline():
             failed_steps.append(description)
             print(f"⚠️  {description} başarısız, devam ediliyor...")
     
-    # Pipeline özeti
     pipeline_end_time = time.time()
     total_time = pipeline_end_time - pipeline_start_time
     
@@ -147,8 +141,6 @@ def run_dvc_pipeline():
     
     if run_command("dvc repro", "DVC Pipeline"):
         print("✅ DVC Pipeline başarıyla tamamlandı!")
-        
-        # DVC status kontrol et
         run_command("dvc status", "DVC Status Kontrolü")
         return True
     else:
@@ -159,7 +151,7 @@ def main():
     """Ana fonksiyon"""
     import argparse
     
-    parser = argparse.ArgumentParser(description="Titanic ML Pipeline Runner")
+    parser = argparse.ArgumentParser(description="Rent ML Pipeline Runner")
     parser.add_argument("--dvc", action="store_true", 
                        help="DVC pipeline kullan (varsayılan: doğrudan Python)")
     parser.add_argument("--step", type=str, 
@@ -168,9 +160,8 @@ def main():
     args = parser.parse_args()
     
     if args.step:
-        # Tek adım çalıştır
         step_commands = {
-            "data": ("python src/veri_indirme.py", "Veri İndirme"),
+            
             "clean": ("python src/veri_temizleme.py", "Veri Temizleme"),
             "features": ("python src/feature_engineering.py", "Özellik Mühendisliği"),
             "models": ("python src/model_gelistirme.py", "Model Geliştirme"),
@@ -185,10 +176,8 @@ def main():
             print(f"✅ Mevcut adımlar: {', '.join(step_commands.keys())}")
     
     elif args.dvc:
-        # DVC pipeline
         run_dvc_pipeline()
     else:
-        # Tam Python pipeline
         success = run_full_pipeline()
         sys.exit(0 if success else 1)
 

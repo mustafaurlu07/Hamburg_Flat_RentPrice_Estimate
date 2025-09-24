@@ -40,11 +40,18 @@ stages:
       - results/feature_names.json
 
   best_model_optimization:
-    cmd: python src/best_model_optimize.py
+    cmd: python src/best_model_optimize.py \
+            --features data/processed/titanic_features.csv \
+            --model_output models/detailed_optimized/GradientBoostingRegressor_detailed.pkl \
+            --report results/detailed_optimization_report.json \
+            --cv 10 \
+            --optimize
     deps:
       - src/best_model_optimize.py
       - data/processed/titanic_features.csv
       - results/model_results.json
     outs:
-      - models/detailed_optimized/
+      - models/detailed_optimized/GradientBoostingRegressor_detailed.pkl
       - results/detailed_optimization_report.json
+    params:
+      - params.yaml:gradient_boosting
