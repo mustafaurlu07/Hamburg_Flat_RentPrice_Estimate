@@ -16,9 +16,13 @@ import os
 
 def load_data():
     """Özellik mühendisliği yapılmış veriyi yükle"""
-    df = pd.read_csv(
-        r"C:\Users\musta\MLOPS\ML_RentEstimate\ModelGelistirmeveOptimizasyon\data\processed\hamburgrentflat_features.csv"
-    )
+    input_path = "data/processed/hamburgrentflat_features.csv"
+
+    if not os.path.exists(input_path):
+        raise FileNotFoundError(f"Veri dosyası bulunamadı: {input_path}")
+
+    df = pd.read_csv(input_path)
+    print(f"Veri başarıyla yüklendi: {df.shape}")
     return df
 
 
@@ -32,15 +36,15 @@ def prepare_features(df):
     ]
 
     available_features = [col for col in feature_columns if col in df.columns]
-    X = df[available_features]  # Tekrar fillna yapmaya gerek yok
+    X = df[available_features]
 
     categorical_cols = X.select_dtypes(include='object').columns.tolist()
     numerical_cols = X.select_dtypes(include=['int64', 'float64']).columns.tolist()
 
     preprocessor = ColumnTransformer([
-    ('cat', OneHotEncoder(drop='first', handle_unknown='ignore'), categorical_cols),
-    ('num', StandardScaler(), numerical_cols)
-])
+        ('cat', OneHotEncoder(drop='first', handle_unknown='ignore'), categorical_cols),
+        ('num', StandardScaler(), numerical_cols)
+    ])
 
     print(f"Kullanılan özellikler: {available_features}")
     return X, y, available_features, preprocessor
@@ -113,12 +117,12 @@ def save_models_and_results(trained_models, results_df, feature_names):
     best_model = trained_models[best_model_name]
     joblib.dump(best_model, "models/best_model.pkl")
 
-    print(f"\nEn iyi model: {best_model_name}")
+    print(f"\n✅ En iyi model: {best_model_name}")
     print(results_df)
 
 
 def main():
-    print("Model geliştirme başlatılıyor...")
+    print("🚀 Model geliştirme başlatılıyor...")
     df = load_data()
 
     X, y, feature_names, preprocessor = prepare_features(df)
@@ -130,9 +134,9 @@ def main():
     trained_models, results_df = train_and_evaluate_models(
         X_train, X_test, y_train, y_test, preprocessor
     )
-    save_models_and_results(trained_models, results_df, feature_names)
 
-    print("\nModel geliştirme tamamlandı!")
+    save_models_and_results(trained_models, results_df, feature_names)
+    print("\n🏁 Model geliştirme tamamlandı!")
 
 
 if __name__ == "__main__":

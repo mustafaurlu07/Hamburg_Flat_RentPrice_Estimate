@@ -7,9 +7,7 @@ def create_features():
     """Özellik mühendisliği yap"""
 
     # Temizlenmiş veriyi yükle
-    df = pd.read_csv(
-        r"C:\Users\musta\MLOPS\ML_RentEstimate\ModelGelistirmeveOptimizasyon\data\processed\hamburgrentflat_clean.csv"
-    )
+    df = pd.read_csv("data/processed/hamburgrentflat_clean.csv")
 
     print(f"Özellik mühendisliği öncesi boyut: {df.shape}")
 
@@ -47,7 +45,7 @@ def create_features():
 
     # Özellik mühendisliği yapılmış veriyi kaydet
     os.makedirs("data/processed", exist_ok=True)
-    df.to_csv(r"C:\Users\musta\MLOPS\ML_RentEstimate\ModelGelistirmeveOptimizasyon\data\processed\hamburgrentflat_features.csv", index=False)
+    df.to_csv("data/processed/hamburgrentflat_features.csv", index=False)
 
     print("Özellik mühendisliği tamamlandı!")
     print("Veri data/processed/hamburgrentflat_features.csv dosyasına kaydedildi.")

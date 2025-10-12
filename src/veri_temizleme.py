@@ -7,7 +7,7 @@ def clean_data():
 
     # Veriyi yükle
     df = pd.read_csv(
-        r"C:\Users\musta\MLOPS\ML_RentEstimate\ModelGelistirmeveOptimizasyon\data\raw\HamburgRentFlat50KmRadius.csv",
+        r"data/raw/HamburgRentFlat50KmRadius.csv",
         encoding="cp1252"
     )
 
@@ -30,7 +30,7 @@ def clean_data():
     os.makedirs("data/processed", exist_ok=True)
 
     # Temizlenmiş veriyi kaydet
-    df_clean.to_csv(r"C:\Users\musta\MLOPS\ML_RentEstimate\ModelGelistirmeveOptimizasyon\data\processed\hamburgrentflat_clean.csv", index=False)
+    df_clean.to_csv("data/processed/hamburgrentflat_clean.csv", index=False)
     print("Temizlenmiş veri data/processed/hamburgrentflat_clean.csv dosyasına kaydedildi.")
 
     return df_clean

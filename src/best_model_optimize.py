@@ -11,39 +11,38 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
+
 def load_data():
     """Özellik mühendisliği yapılmış veriyi yükle"""
-    df = pd.read_csv(
-        r"C:\Users\musta\MLOPS\ML_RentEstimate\ModelGelistirmeveOptimizasyon\data\processed\hamburgrentflat_features.csv"
-    )
+    input_path = "data/processed/hamburgrentflat_features.csv"
+    if not os.path.exists(input_path):
+        raise FileNotFoundError(f"Veri dosyası bulunamadı: {input_path}")
+    df = pd.read_csv(input_path)
+    print(f"✅ Veri yüklendi: {df.shape}")
     return df
+
 
 def prepare_features(df):
     """Modelleme için özellikleri hazırla (kategorik değişkenler one-hot encode edilecek)"""
     y = df['cold_price']
 
-    # Kullanılacak sütunlar
     feature_columns = [
         'city', 'district', 'object_age', 'flat_area', 'room_count',
         'distance_to_centre', 'price_per_sqm', 'age_category', 'distance_category'
     ]
 
-    # Mevcut sütunları filtrele
     available_features = [col for col in feature_columns if col in df.columns]
     X = df[available_features].copy()
 
-    # Kategorik sütunları tespit et
     categorical_cols = X.select_dtypes(include=['object', 'category']).columns.tolist()
-    
-    # One-hot encode (drop_first=True ile multicollinearity azaltılır)
     if categorical_cols:
         X = pd.get_dummies(X, columns=categorical_cols, drop_first=True)
 
-    # Eksik değerleri doldur (numerik)
     X = X.fillna(X.mean())
 
     print(f"🔧 Hazırlanan özellikler: {X.columns.tolist()}")
     return X, y, X.columns.tolist()
+
 
 # ------------------- OPTIMIZATION FUNCTIONS -------------------
 
@@ -71,6 +70,7 @@ def optimize_random_forest(X, y, cv_folds=5):
 
     return random_search.best_estimator_, random_search.best_params_, random_search.best_score_, elapsed
 
+
 def optimize_gradient_boosting(X, y, cv_folds=5):
     print("🚀 Gradient Boosting detaylı optimizasyonu...")
 
@@ -96,13 +96,14 @@ def optimize_gradient_boosting(X, y, cv_folds=5):
 
     return random_search.best_estimator_, random_search.best_params_, random_search.best_score_, elapsed
 
+
 def optimize_knn(X, y, cv_folds=5):
     print("🤝 KNN Regressor detaylı optimizasyonu...")
 
     param_grid = {
         "n_neighbors": [3, 5, 7, 10, 15],
         "weights": ["uniform", "distance"],
-        "p": [1, 2],  # Manhattan vs Euclidean
+        "p": [1, 2],
     }
 
     knn = KNeighborsRegressor()
@@ -115,6 +116,7 @@ def optimize_knn(X, y, cv_folds=5):
     elapsed = time.time() - start_time
 
     return grid_search.best_estimator_, grid_search.best_params_, grid_search.best_score_, elapsed
+
 
 def optimize_decision_tree(X, y, cv_folds=5):
     print("🌳 Decision Tree detaylı optimizasyonu...")
@@ -136,6 +138,7 @@ def optimize_decision_tree(X, y, cv_folds=5):
     elapsed = time.time() - start_time
 
     return grid_search.best_estimator_, grid_search.best_params_, grid_search.best_score_, elapsed
+
 
 # ------------------- FINAL EVALUATION -------------------
 
@@ -159,11 +162,12 @@ def final_evaluation(model, X, y, model_name, cv_folds=10):
 
     return results
 
+
 # ------------------- MAIN -------------------
 
 def main():
     print("🎯 En İyi Model Detaylı Optimizasyonu")
-    print("="*50)
+    print("=" * 50)
 
     df = load_data()
     X, y, feature_names = prepare_features(df)
@@ -171,8 +175,8 @@ def main():
     print(f"📊 Veri boyutu: {X.shape}")
     print(f"🔧 Özellikler: {feature_names}")
 
-    # Önce best_model.pkl'i yükle
-    best_model_path = r"C:\Users\musta\MLOPS\ML_RentEstimate\ModelGelistirmeveOptimizasyon\src\models\best_model.pkl"
+    # best_model.pkl yolunu düzelt
+    best_model_path = "models/best_model.pkl"
     if not os.path.exists(best_model_path):
         print("❌ best_model.pkl bulunamadı! Önce model_gelistirme.py çalıştırın.")
         return
@@ -182,6 +186,7 @@ def main():
     print(f"📦 En iyi model: {best_model_name}")
 
     cv_folds = 5
+
     if best_model_name == "RandomForestRegressor":
         optimized_model, best_params, best_score, elapsed = optimize_random_forest(X, y, cv_folds)
     elif best_model_name == "GradientBoostingRegressor":
@@ -205,7 +210,7 @@ def main():
     # Final değerlendirme
     final_results = final_evaluation(optimized_model, X, y, best_model_name, cv_folds=10)
 
-    # Kaydetme
+    # Sonuçları kaydet
     os.makedirs("models/detailed_optimized", exist_ok=True)
     os.makedirs("results", exist_ok=True)
 
@@ -226,6 +231,7 @@ def main():
     print("\n✅ Detaylı optimizasyon tamamlandı!")
     print(f"📁 Model kaydedildi: models/detailed_optimized/{best_model_name}_detailed.pkl")
     print(f"📊 Rapor: results/detailed_optimization_report.json")
+
 
 if __name__ == "__main__":
     main()
