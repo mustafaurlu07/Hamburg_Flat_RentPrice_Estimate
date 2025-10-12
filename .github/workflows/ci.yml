@@ -34,7 +34,4 @@ jobs:
           export PYTHONPATH=$PYTHONPATH:./src
           pytest tests/ -v
 
-      # 5. (Opsiyonel) Model pipeline çalıştır
-      - name: Run pipeline
-        run: |
-          python run_pipeline.py
+
