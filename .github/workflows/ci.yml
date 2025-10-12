@@ -30,8 +30,7 @@ jobs:
 
       # 4. Testleri çalıştır
       - name: Run unit tests
-        run: |
-          pytest tests/ -v
+        run: pytest ModelGelistirmeveOptimizasyon/tests/ -v
 
       # 5. (Opsiyonel) Model pipeline çalıştır
       - name: Run pipeline
