@@ -14,18 +14,18 @@ def create_features():
     # Yeni özellikler oluştur
 
     # 1. Metrekare Fiyatı
-    df['price_per_sqm'] = df['cold_price'] / df['flat_area']
+    df["price_per_sqm"] = df["cold_price"] / df["flat_area"]
 
     # 2. Yaş Kategorisi
     bins = [0, 10, 30, 60, 1000]
-    labels = ['new', 'recent', 'middle_age', 'old']
-    df['age_category'] = pd.cut(df['object_age'], bins=bins, labels=labels)
+    labels = ["new", "recent", "middle_age", "old"]
+    df["age_category"] = pd.cut(df["object_age"], bins=bins, labels=labels)
 
     # 3. Mesafe grupları
-    df['distance_category'] = pd.cut(
-        df['distance_to_centre'],
+    df["distance_category"] = pd.cut(
+        df["distance_to_centre"],
         bins=[0, 1, 3, 7, 100],
-        labels=['very_close', 'close', 'medium', 'far']
+        labels=["very_close", "close", "medium", "far"],
     )
 
     """
@@ -34,7 +34,7 @@ def create_features():
     """
 
     # Kategorik değişkenleri sayısala çevir
-    categorical_columns = ['age_category', 'distance_category']
+    categorical_columns = ["age_category", "distance_category"]
 
     for col in categorical_columns:
         if col in df.columns:

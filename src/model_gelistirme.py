@@ -28,23 +28,36 @@ def load_data():
 
 def prepare_features(df):
     """Modelleme için özellikleri hazırla"""
-    y = df['cold_price']
+    y = df["cold_price"]
 
     feature_columns = [
-        'city', 'district', 'object_age', 'flat_area', 'room_count',
-        'distance_to_centre', 'price_per_sqm', 'age_category', 'distance_category'
+        "city",
+        "district",
+        "object_age",
+        "flat_area",
+        "room_count",
+        "distance_to_centre",
+        "price_per_sqm",
+        "age_category",
+        "distance_category",
     ]
 
     available_features = [col for col in feature_columns if col in df.columns]
     X = df[available_features]
 
-    categorical_cols = X.select_dtypes(include='object').columns.tolist()
-    numerical_cols = X.select_dtypes(include=['int64', 'float64']).columns.tolist()
+    categorical_cols = X.select_dtypes(include="object").columns.tolist()
+    numerical_cols = X.select_dtypes(include=["int64", "float64"]).columns.tolist()
 
-    preprocessor = ColumnTransformer([
-        ('cat', OneHotEncoder(drop='first', handle_unknown='ignore'), categorical_cols),
-        ('num', StandardScaler(), numerical_cols)
-    ])
+    preprocessor = ColumnTransformer(
+        [
+            (
+                "cat",
+                OneHotEncoder(drop="first", handle_unknown="ignore"),
+                categorical_cols,
+            ),
+            ("num", StandardScaler(), numerical_cols),
+        ]
+    )
 
     print(f"Kullanılan özellikler: {available_features}")
     return X, y, available_features, preprocessor
@@ -58,8 +71,12 @@ def train_and_evaluate_models(X_train, X_test, y_train, y_test, preprocessor):
         "Decision Tree": DecisionTreeRegressor(random_state=42),
         "Random Forest": RandomForestRegressor(n_estimators=100, random_state=42),
         "Gradient Boosting": GradientBoostingRegressor(
-            n_estimators=100, learning_rate=0.1, max_depth=2, subsample=0.8, random_state=42
-        )
+            n_estimators=100,
+            learning_rate=0.1,
+            max_depth=2,
+            subsample=0.8,
+            random_state=42,
+        ),
     }
 
     results = []
@@ -68,10 +85,7 @@ def train_and_evaluate_models(X_train, X_test, y_train, y_test, preprocessor):
     for name, model in models.items():
         print(f"{name} modeli eğitiliyor...")
 
-        pipeline = Pipeline([
-            ('preprocess', preprocessor),
-            ('model', model)
-        ])
+        pipeline = Pipeline([("preprocess", preprocessor), ("model", model)])
         pipeline.fit(X_train, y_train)
 
         y_train_pred = pipeline.predict(X_train)
@@ -83,15 +97,17 @@ def train_and_evaluate_models(X_train, X_test, y_train, y_test, preprocessor):
         rmse = np.sqrt(mse)
         mae = mean_absolute_error(y_test, y_test_pred)
 
-        results.append({
-            "Model": name,
-            "Eğitim R²": round(r2_train, 3),
-            "Test R²": round(r2_test, 3),
-            "Fark": round(r2_train - r2_test, 3),
-            "MSE": round(mse, 4),
-            "RMSE": round(rmse, 4),
-            "MAE": round(mae, 4)
-        })
+        results.append(
+            {
+                "Model": name,
+                "Eğitim R²": round(r2_train, 3),
+                "Test R²": round(r2_test, 3),
+                "Fark": round(r2_train - r2_test, 3),
+                "MSE": round(mse, 4),
+                "RMSE": round(rmse, 4),
+                "MAE": round(mae, 4),
+            }
+        )
 
         trained_models[name] = pipeline
 
@@ -113,7 +129,9 @@ def save_models_and_results(trained_models, results_df, feature_names):
         json.dump(feature_names, f, indent=2)
 
     # En iyi modeli Test R²'ye göre seç
-    best_model_name = results_df.sort_values(by="Test R²", ascending=False).iloc[0]["Model"]
+    best_model_name = results_df.sort_values(by="Test R²", ascending=False).iloc[0][
+        "Model"
+    ]
     best_model = trained_models[best_model_name]
     joblib.dump(best_model, "models/best_model.pkl")
 

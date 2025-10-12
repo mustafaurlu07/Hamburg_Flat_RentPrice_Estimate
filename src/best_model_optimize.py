@@ -24,17 +24,24 @@ def load_data():
 
 def prepare_features(df):
     """Modelleme için özellikleri hazırla (kategorik değişkenler one-hot encode edilecek)"""
-    y = df['cold_price']
+    y = df["cold_price"]
 
     feature_columns = [
-        'city', 'district', 'object_age', 'flat_area', 'room_count',
-        'distance_to_centre', 'price_per_sqm', 'age_category', 'distance_category'
+        "city",
+        "district",
+        "object_age",
+        "flat_area",
+        "room_count",
+        "distance_to_centre",
+        "price_per_sqm",
+        "age_category",
+        "distance_category",
     ]
 
     available_features = [col for col in feature_columns if col in df.columns]
     X = df[available_features].copy()
 
-    categorical_cols = X.select_dtypes(include=['object', 'category']).columns.tolist()
+    categorical_cols = X.select_dtypes(include=["object", "category"]).columns.tolist()
     if categorical_cols:
         X = pd.get_dummies(X, columns=categorical_cols, drop_first=True)
 
@@ -45,6 +52,7 @@ def prepare_features(df):
 
 
 # ------------------- OPTIMIZATION FUNCTIONS -------------------
+
 
 def optimize_random_forest(X, y, cv_folds=5):
     print("🌲 Random Forest detaylı optimizasyonu...")
@@ -60,15 +68,26 @@ def optimize_random_forest(X, y, cv_folds=5):
 
     rf = RandomForestRegressor(random_state=42)
     random_search = RandomizedSearchCV(
-        rf, param_distributions=param_grid, n_iter=50, cv=cv_folds,
-        scoring="r2", n_jobs=-1, verbose=1, random_state=42
+        rf,
+        param_distributions=param_grid,
+        n_iter=50,
+        cv=cv_folds,
+        scoring="r2",
+        n_jobs=-1,
+        verbose=1,
+        random_state=42,
     )
 
     start_time = time.time()
     random_search.fit(X, y)
     elapsed = time.time() - start_time
 
-    return random_search.best_estimator_, random_search.best_params_, random_search.best_score_, elapsed
+    return (
+        random_search.best_estimator_,
+        random_search.best_params_,
+        random_search.best_score_,
+        elapsed,
+    )
 
 
 def optimize_gradient_boosting(X, y, cv_folds=5):
@@ -86,15 +105,26 @@ def optimize_gradient_boosting(X, y, cv_folds=5):
 
     gb = GradientBoostingRegressor(random_state=42)
     random_search = RandomizedSearchCV(
-        gb, param_distributions=param_grid, n_iter=50, cv=cv_folds,
-        scoring="r2", n_jobs=-1, verbose=1, random_state=42
+        gb,
+        param_distributions=param_grid,
+        n_iter=50,
+        cv=cv_folds,
+        scoring="r2",
+        n_jobs=-1,
+        verbose=1,
+        random_state=42,
     )
 
     start_time = time.time()
     random_search.fit(X, y)
     elapsed = time.time() - start_time
 
-    return random_search.best_estimator_, random_search.best_params_, random_search.best_score_, elapsed
+    return (
+        random_search.best_estimator_,
+        random_search.best_params_,
+        random_search.best_score_,
+        elapsed,
+    )
 
 
 def optimize_knn(X, y, cv_folds=5):
@@ -115,7 +145,12 @@ def optimize_knn(X, y, cv_folds=5):
     grid_search.fit(X, y)
     elapsed = time.time() - start_time
 
-    return grid_search.best_estimator_, grid_search.best_params_, grid_search.best_score_, elapsed
+    return (
+        grid_search.best_estimator_,
+        grid_search.best_params_,
+        grid_search.best_score_,
+        elapsed,
+    )
 
 
 def optimize_decision_tree(X, y, cv_folds=5):
@@ -137,22 +172,35 @@ def optimize_decision_tree(X, y, cv_folds=5):
     grid_search.fit(X, y)
     elapsed = time.time() - start_time
 
-    return grid_search.best_estimator_, grid_search.best_params_, grid_search.best_score_, elapsed
+    return (
+        grid_search.best_estimator_,
+        grid_search.best_params_,
+        grid_search.best_score_,
+        elapsed,
+    )
 
 
 # ------------------- FINAL EVALUATION -------------------
+
 
 def final_evaluation(model, X, y, model_name, cv_folds=10):
     print(f"\n🎯 {model_name} final değerlendirmesi ({cv_folds} fold CV)...")
 
     cv_r2 = cross_val_score(model, X, y, cv=cv_folds, scoring="r2")
-    cv_rmse = np.sqrt(-cross_val_score(model, X, y, cv=cv_folds, scoring="neg_mean_squared_error"))
-    cv_mae = -cross_val_score(model, X, y, cv=cv_folds, scoring="neg_mean_absolute_error")
+    cv_rmse = np.sqrt(
+        -cross_val_score(model, X, y, cv=cv_folds, scoring="neg_mean_squared_error")
+    )
+    cv_mae = -cross_val_score(
+        model, X, y, cv=cv_folds, scoring="neg_mean_absolute_error"
+    )
 
     results = {
-        "r2_mean": float(cv_r2.mean()), "r2_std": float(cv_r2.std()),
-        "rmse_mean": float(cv_rmse.mean()), "rmse_std": float(cv_rmse.std()),
-        "mae_mean": float(cv_mae.mean()), "mae_std": float(cv_mae.std())
+        "r2_mean": float(cv_r2.mean()),
+        "r2_std": float(cv_r2.std()),
+        "rmse_mean": float(cv_rmse.mean()),
+        "rmse_std": float(cv_rmse.std()),
+        "mae_mean": float(cv_mae.mean()),
+        "mae_std": float(cv_mae.std()),
     }
 
     print("📊 Final Sonuçlar:")
@@ -164,6 +212,7 @@ def final_evaluation(model, X, y, model_name, cv_folds=10):
 
 
 # ------------------- MAIN -------------------
+
 
 def main():
     print("🎯 En İyi Model Detaylı Optimizasyonu")
@@ -188,13 +237,19 @@ def main():
     cv_folds = 5
 
     if best_model_name == "RandomForestRegressor":
-        optimized_model, best_params, best_score, elapsed = optimize_random_forest(X, y, cv_folds)
+        optimized_model, best_params, best_score, elapsed = optimize_random_forest(
+            X, y, cv_folds
+        )
     elif best_model_name == "GradientBoostingRegressor":
-        optimized_model, best_params, best_score, elapsed = optimize_gradient_boosting(X, y, cv_folds)
+        optimized_model, best_params, best_score, elapsed = optimize_gradient_boosting(
+            X, y, cv_folds
+        )
     elif best_model_name == "KNeighborsRegressor":
         optimized_model, best_params, best_score, elapsed = optimize_knn(X, y, cv_folds)
     elif best_model_name == "DecisionTreeRegressor":
-        optimized_model, best_params, best_score, elapsed = optimize_decision_tree(X, y, cv_folds)
+        optimized_model, best_params, best_score, elapsed = optimize_decision_tree(
+            X, y, cv_folds
+        )
     elif best_model_name == "LinearRegression":
         print("📈 Linear Regression için detaylı optimizasyon yok (parametre yok).")
         return
@@ -208,13 +263,17 @@ def main():
     print(f"   Parametreler: {best_params}")
 
     # Final değerlendirme
-    final_results = final_evaluation(optimized_model, X, y, best_model_name, cv_folds=10)
+    final_results = final_evaluation(
+        optimized_model, X, y, best_model_name, cv_folds=10
+    )
 
     # Sonuçları kaydet
     os.makedirs("models/detailed_optimized", exist_ok=True)
     os.makedirs("results", exist_ok=True)
 
-    joblib.dump(optimized_model, f"models/detailed_optimized/{best_model_name}_detailed.pkl")
+    joblib.dump(
+        optimized_model, f"models/detailed_optimized/{best_model_name}_detailed.pkl"
+    )
 
     detailed_results = {
         "model_name": best_model_name,
@@ -229,7 +288,9 @@ def main():
         json.dump(detailed_results, f, indent=2)
 
     print("\n✅ Detaylı optimizasyon tamamlandı!")
-    print(f"📁 Model kaydedildi: models/detailed_optimized/{best_model_name}_detailed.pkl")
+    print(
+        f"📁 Model kaydedildi: models/detailed_optimized/{best_model_name}_detailed.pkl"
+    )
     print(f"📊 Rapor: results/detailed_optimization_report.json")
 
 
