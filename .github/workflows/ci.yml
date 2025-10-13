@@ -92,8 +92,5 @@ jobs:
 
       - name: 🧪 Docker Health Check
         run: |
-          docker run -d --name test-container -p 5000:5000 rent-ml-pipeline:test
-          sleep 10
-          curl -f http://localhost:5000/health
-          docker stop test-container
-          docker rm test-container
+          docker run --rm rent-ml-pipeline:test python run_pipeline.py
+          
