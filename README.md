@@ -9,7 +9,7 @@ Bu proje, Hamburg 50 km yarıçapındaki kiralık daireler için kira tahmini ya
 ---
 
 ## 📂 Proje Yapısı
-
+```
 Hamburg_Flat_Rent_Estimate/
 ├── src/
 │ ├── veri_temizleme.py # Veri temizleme modülü
@@ -24,7 +24,7 @@ Hamburg_Flat_Rent_Estimate/
 ├── results/ # Sonuçlar ve metrikler
 ├── requirements.txt # Python bağımlılıkları
 └── README.md # Bu dosya
-
+```
 
 ---
 
