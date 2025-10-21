@@ -1,153 +1,129 @@
-# Titanic Survival Prediction - Model Development & Optimization
+# Hamburg Flat Rent Prediction 🚀
 
-Bu proje, Titanic veri seti kullanarak hayatta kalma tahmini yapan makine öğrenmesi modelleri geliştirmeyi ve optimize etmeyi amaçlamaktadır.
+[![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Status](https://img.shields.io/badge/status-beta-yellow)]()
 
-## Proje Yapısı
+Bu proje, Hamburg 50 km yarıçapındaki kiralık daireler için kira tahmini yapan bir makine öğrenmesi modeli ve REST API servisidir. Swagger arayüzü ile kolay kullanım sağlar.
 
-```
-ornek_4/
+---
+
+## 📂 Proje Yapısı
+
+Hamburg_Flat_Rent_Estimate/
 ├── src/
-│   ├── veri_indirme.py          # Veri indirme modülü
-│   ├── veri_temizleme.py        # Veri temizleme modülü
-│   ├── feature_engineering.py   # Özellik mühendisliği
-│   ├── model_gelistirme.py      # Model geliştirme
-│   └── model_optimizasyon.py    # Model optimizasyonu
+│ ├── veri_temizleme.py # Veri temizleme modülü
+│ ├── feature_engineering.py # Özellik mühendisliği
+│ ├── model_gelistirme.py # Model geliştirme
+│ ├── api.py # Flask API
+│ └── predict.py # Tahmin sınıfı ve yardımcı fonksiyonlar
 ├── data/
-│   ├── raw/                     # Ham veri
-│   └── processed/               # İşlenmiş veri
-├── models/                      # Eğitilmiş modeller
-├── results/                     # Sonuçlar ve metrikler
-├── dvc.yaml                     # DVC pipeline tanımı
-├── requirements.txt             # Python bağımlılıkları
-└── README.md                    # Bu dosya
-```
+│ ├── raw/ # Ham veri
+│ └── processed/ # İşlenmiş veri ve özellikler
+├── models/ # Eğitilmiş modeller
+├── results/ # Sonuçlar ve metrikler
+├── requirements.txt # Python bağımlılıkları
+└── README.md # Bu dosya
 
-## Özellikler
+
+---
+
+## ⚙️ Özellikler
 
 ### Veri İşleme
-- Titanic veri setinin otomatik indirilmesi
-- Eksik değerlerin akıllı doldurulması
-- Veri temizleme ve ön işleme
+- Ham veriyi yükleme ve temizleme
+- Eksik değerleri median ile doldurma
+- `city` ve `district` boş olan satırları silme
+- Temizlenmiş veriyi kaydetme: `data/processed/hamburgrentflat_clean.csv`
 
 ### Özellik Mühendisliği
-- Aile büyüklüğü hesaplama
-- Yaş ve ücret grupları oluşturma
-- Unvan çıkarma
-- Kategorik değişkenlerin kodlanması
+- `age_category` ve `distance_category` oluşturma
+- Kategorik değişkenleri sayısal değerlere çevirme (`codes`)
+- Gerekli feature set: 
+
+['city', 'district', 'object_age', 'flat_area', 'room_count',
+'distance_to_centre', 'age_category', 'distance_category']
+
 
 ### Model Geliştirme
-Aşağıdaki modeller eğitilir ve karşılaştırılır:
+- Kullanılan modeller:
 - Random Forest
-- Logistic Regression
-- Support Vector Machine (SVM)
+- Decision Tree
 - Gradient Boosting
-- Naive Bayes
+- KNN Regressor
+- Linear Regression
+- En iyi modelin otomatik seçimi ve kaydı (`models/best_model.pkl`)
 
-### Akıllı Model Optimizasyonu
-- En iyi performans gösteren modeli otomatik belirleme
-- İki aşamalı optimizasyon (RandomSearch + GridSearch)
-- Detaylı cross-validation (10-fold)
-- Kapsamlı metrik değerlendirmesi (Accuracy, ROC-AUC, Precision, Recall, F1)
+### API
+- Flask + Swagger ile REST API
+- Endpoints:
+- `GET /` → API bilgileri
+- `POST /predict` → Kira tahmini
+- `GET /sample` → Örnek istek formatı
+- JSON input doğrulama ve hata yönetimi
 
-## Kurulum
+---
 
-1. Gerekli paketleri yükleyin:
+## 🚀 Kurulum
+
+1. Sanal ortam oluştur ve aktive et:
+
 ```bash
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# macOS/Linux
+source .venv/bin/activate
+
+
+2. Paketleri yükle:
 pip install -r requirements.txt
-```
 
-2. DVC'yi başlatın (eğer henüz başlatılmamışsa):
-```bash
-dvc init
-```
-
-## Kullanım
-
-### 🚀 Önerilen Yöntem: Otomatik Pipeline Runner
-```bash
-# Tüm pipeline'ı çalıştır
-python run_pipeline.py
-
-# DVC pipeline kullan
-python run_pipeline.py --dvc
-
-# Sadece belirli bir adımı çalıştır
-python run_pipeline.py --step models
-python run_pipeline.py --step optimize
-```
-
-### Geleneksel Yöntemler
-
-#### DVC Pipeline
-```bash
-dvc repro
-```
-
-#### Aşama Aşama Manuel Çalıştırma
-
-1. Veri indirme:
-```bash
-python src/veri_indirme.py
-```
-
-2. Veri temizleme:
-```bash
-python src/veri_temizleme.py
-```
-
-3. Özellik mühendisliği:
-```bash
-python src/feature_engineering.py
-```
-
-4. Model geliştirme:
-```bash
+🏃 Kullanım
+Model Eğitimi
 python src/model_gelistirme.py
-```
 
-5. Model optimizasyonu:
-```bash
-python src/model_optimizasyon.py
-```
+API Çalıştırma
+python src/api.py
+Swagger UI: http://localhost:5000/apidocs/
 
-## Çıktılar
+Örnek POST /predict isteği
+curl -X POST "http://localhost:5000/predict" \
+-H "accept: application/json" \
+-H "Content-Type: application/json" \
+-d '{
+  "city": "Altona",
+  "district": "Hamburg",
+  "object_age": 50,
+  "flat_area": 64,
+  "room_count": 2,
+  "distance_to_centre": 2
+}'
 
-### Modeller
-- `models/`: Temel modeller
-- `models/optimized/`: Optimize edilmiş modeller
-- `models/best_model.pkl`: En iyi temel model
-- `models/optimized/best_optimized_model.pkl`: En iyi optimize edilmiş model
+Örnek API cevabı
+{
+  "status": "success",
+  "input": {
+    "city": "Altona",
+    "district": "Hamburg",
+    "object_age": 50,
+    "flat_area": 64,
+    "room_count": 2,
+    "distance_to_centre": 2
+  },
+  "prediction": 1250.0,
+  "currency": "EUR",
+  "timestamp": "2025-10-20T20:00:00"
+}
 
-### Sonuçlar
-- `results/model_results.json`: Temel model performans sonuçları
-- `results/optimization_results.json`: Optimizasyon sonuçları
-- `results/best_model_info.json`: En iyi model bilgileri
-- `results/best_optimized_model_info.json`: En iyi optimize edilmiş model bilgileri
+📦 Çıktılar
 
-## DVC Pipeline Aşamaları
+models/best_model.pkl → En iyi model
 
-1. **data_download**: Titanic veri setini indir
-2. **data_clean**: Veriyi temizle ve ön işle
-3. **feature_engineering**: Yeni özellikler oluştur
-4. **model_development**: Farklı modelleri eğit ve değerlendir
-5. **model_optimization**: Hiperparametre optimizasyonu yap
+data/processed/ → Temizlenmiş ve özellik mühendisliği yapılmış veri
 
-## Metrikler
+results/ → Model sonuçları ve metrikler (opsiyonel)
 
-- **Accuracy**: Doğru tahmin oranı
-- **ROC-AUC**: Receiver Operating Characteristic - Area Under Curve
-- **Cross-validation**: 5-fold stratified cross-validation
-- **Confusion Matrix**: Karışıklık matrisi
-- **Classification Report**: Detaylı sınıflandırma raporu
+⚡ Lisans
 
-## Geliştirme
-
-Yeni özellikler eklemek veya mevcut modelleri geliştirmek için:
-
-1. Yeni bir script oluşturun `src/` dizininde
-2. `dvc.yaml` dosyasına yeni aşama ekleyin
-3. Pipeline'ı yeniden çalıştırın: `dvc repro`
-
-## Lisans
-
-Bu proje eğitim amaçlıdır ve MIT lisansı altındadır.
+MIT Lisansı altında dağıtılmıştır.

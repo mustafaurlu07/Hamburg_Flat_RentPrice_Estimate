@@ -3,7 +3,7 @@ import joblib
 
 # Load processed data
 df_validate = pd.read_csv(
-    r"C:\Users\musta\MLOPS\ML_RentEstimate\ModelGelistirmeveOptimizasyon\data\processed\hamburgrentflat_features.csv",
+    r"C:\Users\musta\MLOPS\Hamburg_Flat_RentPrice_Estimate\data\processed\hamburgrentflat_features.csv",
     encoding="utf-8",
 ).head(20)
 
@@ -18,7 +18,6 @@ feature_columns = [
     "flat_area",
     "room_count",
     "distance_to_centre",
-    "price_per_sqm",
     "age_category",
     "distance_category",
 ]

@@ -33,7 +33,7 @@ def prepare_features(df):
         "flat_area",
         "room_count",
         "distance_to_centre",
-        "price_per_sqm",
+        #"price_per_sqm",
         "age_category",
         "distance_category",
     ]

@@ -13,8 +13,8 @@ def create_features():
 
     # Yeni özellikler oluştur
 
-    # 1. Metrekare Fiyatı
-    df["price_per_sqm"] = df["cold_price"] / df["flat_area"]
+    # 1. Metrekare Fiyatı -- Ciktiyi ozellik turetmede kullanamayiz!!!
+    #df["price_per_sqm"] = df["cold_price"] / df["flat_area"]
 
     # 2. Yaş Kategorisi
     bins = [0, 10, 30, 60, 1000]

@@ -10,7 +10,7 @@ def clean_data():
     df = pd.read_csv(r"data/raw/HamburgRentFlat50KmRadius.csv", encoding="cp1252")
 
     print(f"Orijinal veri boyutu: {df.shape}")
-    print(f"Eksik değerler:\n{df.isnull().sum()}")
+    print(f"Eksik degerler:\n{df.isnull().sum()}")
 
     # Eksik değerleri medyan ile doldur
     df["object_age"] = df["object_age"].fillna(df["object_age"].median())
@@ -23,8 +23,8 @@ def clean_data():
     # city veya district boş olan satırları sil
     df_clean = df.dropna(subset=["city", "district"])
 
-    print(f"\nTemizlenmiş veri boyutu: {df_clean.shape}")
-    print(f"Temizleme sonrası eksik değerler:\n{df_clean.isnull().sum()}")
+    print(f"\nTemizlenmis veri boyutu: {df_clean.shape}")
+    print(f"Temizleme sonrası eksik degerler:\n{df_clean.isnull().sum()}")
 
     # Processed data dizinini oluştur
     os.makedirs("data/processed", exist_ok=True)
@@ -32,7 +32,7 @@ def clean_data():
     # Temizlenmiş veriyi kaydet
     df_clean.to_csv("data/processed/hamburgrentflat_clean.csv", index=False)
     print(
-        "Temizlenmiş veri data/processed/hamburgrentflat_clean.csv dosyasına kaydedildi."
+        "Temizlenmis veri data/processed/hamburgrentflat_clean.csv dosyasına kaydedildi."
     )
 
     return df_clean
